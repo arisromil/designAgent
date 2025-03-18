@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design Collaboration Assistant</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=attach_file" />
+    <style>
+        body { background-color: #333; color: white; font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        #icon-container { position: relative; margin: 0 auto; text-align: center; transition: 1s; top:200px; } 
+        #icon-placeholder { width: 100px; border-radius: 50%; margin: 0 auto; animation: hop 1s; } 
+        #icon-placeholder > svg{ width: 100%; } 
+        @keyframes hop { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } } 
+        #sub-header, #additional-text { margin: 5px 0; } 
+        #additional-text{ color:#ccc;}
+        #input-container { position: fixed; bottom: 20px; width: 80%; margin: 0 auto; left: 10px; right: 10px; padding: 10px; background-color: #444; border-radius: 5px; display: flex; flex-wrap: wrap; align-items: center; opacity: 0; transition: 1s all; z-index: 999; filter: drop-shadow(0px 25px 0px #333); } 
+        #input-field { flex-grow: 1; padding: 10px; border: none; border-radius: 5px 5px 0 0; background-color: #555; color: white; min-width: 0; } 
+        #clear-button { padding: 10px 15px; border: none; border-radius: 0 5px 0 0; background-color: #222; color: #ccc; cursor: pointer; } 
+        #clear-button:hover { background-color: #333333;}
+        #generate-button{ padding: 10px 10px; border: none; border-radius: 0 0 5px 5px; background-color: #333; color: white; cursor: pointer; margin-top: 10px; transition: 1s all; width: 100%; } 
+        #generate-button:hover{ background-color: #111; }
+        @media (min-width: 768px) { #input-container { flex-wrap: nowrap; } #input-field { border-radius: 5px 0 0 5px; } #clear-button { border-radius: 0; } #generate-button { margin-top: 0; margin-left: 5px; width: auto; border-radius: 0 5px 5px 0; } }
+        #toggle-panel-button { position: absolute; top: 10px; right: 10px; padding: 5px 10px; border: none; border-radius: 5px; color: white; cursor: pointer; z-index: 99999; background: none; transition: 1s all; }
+        #right-panel { position: fixed; top: 0; right: -350px; width: 275px; height: 100vh; color:#333333; padding: 20px; transition: right 0.5s; background: #efefef; z-index: 999; filter: drop-shadow(8px -5px 10px #fff); overflow-y: auto; } 
+        #right-panel.show { right: 0; }
+        #response { display:  none; position: relative;  max-width: 900px;  margin: 55px auto 100px auto; background-color: #222; padding: 10px; border-radius: 5px; }
+        #loader { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); z-index: 999999; } 
+        .spinner { position: absolute; top: 50%; left: 50%; width: 50px; height: 50px; border: 3px solid #fff; border-top: 3px solid #333; border-radius: 50%; animation: spin 1s linear infinite; } 
+        @keyframes spin { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+        #toggle-svg:hover{  filter: drop-shadow(0px 0px 10px #efefef); transition: 1s all; }
+    </style>
+</head>
+<body>
+    <div id="icon-container">
+        <div id="icon-placeholder" class="material-symbols-outlined">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" width="24px" fill="#efefef"><path d="M323-160q-11 0-20.5-5.5T288-181l-78-139h58l40 80h92v-40h-68l-40-80H188l-57-100q-2-5-3.5-10t-1.5-10q0-4 5-20l57-100h104l40-80h68v-40h-92l-40 80h-58l78-139q5-10 14.5-15.5T323-800h97q17 0 28.5 11.5T460-760v160h-60l-40 40h100v120h-88l-40-80h-92l-40 40h108l40 80h112v200q0 17-11.5 28.5T420-160h-97Zm237 0q-33 0-56.5-23.5T480-240q0-23 11-40.5t29-28.5v-342q-18-11-29-28.5T480-720q0-33 23.5-56.5T560-800q33 0 56.5 23.5T640-720q0 23-11 40.5T600-651v101l80-48q0-34 23.5-58t56.5-24q33 0 56.5 23.5T840-600q0 33-23.5 56.5T760-520q-11 0-20.5-2.5T721-530l-91 55 101 80q7-3 14-4t15-1q33 0 56.5 23.5T840-320q0 33-23.5 56.5T760-240q-37 0-60.5-28T681-332l-81-65v89q18 11 28.5 28.5T639-240q0 33-23 56.5T560-160Z"/></svg>
+        </div>
+        <h2 id="sub-header">Design Agent</h2>
+        <p id="additional-text">Collaboration Assistant</p>
+    </div>
+
+    <form id="design-form">
+        <div id="input-container">
+            <input type="text" id="input-field" placeholder="Share Your Design Idea">
+            <button type="button" id="clear-button">X</button>
+            <button type="submit" id="generate-button">Let's Collaborate!</button>
+        </div>
+    </form>
+    
+    <div id="loader">
+        <div class="spinner"></div>
+    </div>
+
+    <div id="response"></div>
+
+    <button id="toggle-panel-button">
+        <svg id="toggle-svg" fill="#efefef" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24px" fill="#efefef">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+          </svg>          
+    </button>
+    <div id="right-panel">
+        <h2>About Design Collaboration Assistant</h2> 
+        <p>This AI-powered tool enhances your design process by providing instant feedback and creative suggestions. Whether you're brainstorming new ideas or refining existing concepts, our assistant is here to collaborate.</p> 
+        <h3>Key Features:</h3> 
+        <ul> 
+            <li>Generate insights from text descriptions</li> 
+            <li>Receive AI-powered suggestions to spark creativity</li> 
+            <li>Refine ideas with intelligent feedback</li> 
+            <li>Streamline your design workflow</li> 
+        </ul> 
+        <h3>How to use:</h3> 
+        <ol> 
+            <li>Enter a design topic or description</li> 
+            <li>Click "Let's Collaborate!"</li> 
+            <li>Review AI-generated insights</li> 
+            <li>Iterate and improve your design</li> 
+        </ol> 
+        <p>Unlock your creative potential and elevate your designs with our AI assistant!</p> 
+        <p>&nbsp;</p>
+    </div>
+
+    <script>
+     document.addEventListener('DOMContentLoaded', function() {
+            const iconContainer = document.getElementById('icon-container');
+            const inputContainer = document.getElementById('input-container');
+            const respond = document.getElementById('response');
+            const loader = document.getElementById('loader');
+    
+    // Hop animation and move to top
+    iconContainer.style.animation = 'hop 1s';
+    setTimeout(function() {
+        iconContainer.style.top = '20px';
+
+        // Show input field
+        setTimeout(function() {
+            inputContainer.style.display = 'flex';
+            inputContainer.style.opacity = 1;
+        }, 500);
+    }, 1000);
+
+    // Toggle right panel
+    // document.getElementById('toggle-panel-button').addEventListener('click', function() {
+    //     var panel = document.getElementById('right-panel');
+    //     var BTNSVG = document.getElementById('toggle-svg');
+       
+    //     if (panel.style.right === '0px' || panel.style.right === '') {
+    //         panel.style.right = '-350px';
+    //         BTNSVG.style.fill = '#efefef';
+    //     } else {
+    //         panel.style.right = '0px';
+    //         BTNSVG.style.fill = '#333';
+    //     }
+    // });
+
+    var toggleButton = document.getElementById('toggle-panel-button');
+    var panel = document.getElementById('right-panel');
+    var BTNSVG = document.getElementById('toggle-svg');
+
+    // Set initial state
+    panel.style.right = '-350px';
+    BTNSVG.style.fill = '#efefef';
+
+    toggleButton.addEventListener('click', function() {
+        if (panel.style.right === '0px') {
+            panel.style.right = '-350px';
+            BTNSVG.style.fill = '#efefef';
+        } else {
+            panel.style.right = '0px';
+            BTNSVG.style.fill = '#333';
+        }
+    });
+
+
+
+    async function askDesignQuestion() {
+                const question = document.getElementById('input-field').value;
+                loader.style.display = 'block'; // Show loader
+                try {
+                    const response = await fetch('/design-assistant', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `question=${encodeURIComponent(question)}`
+                    });
+                    const data = await response.json();
+                    console.log('Response received:', data);
+                    document.getElementById('response').innerHTML = data.response;
+                    respond.style.display = "block";
+                } catch (error) {
+                    console.error('Error:', error);
+                    document.getElementById('response').innerHTML = 'An error occurred while processing your request.';
+                } finally {
+                    loader.style.display = 'none'; // Hide loader
+                }
+            }
+            
+            document.getElementById('clear-button').addEventListener('click', () => {
+                document.getElementById('input-field').value = '';
+                document.getElementById('response').innerHTML = '';
+            });
+
+            document.getElementById('design-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                askDesignQuestion();
+            });
+
+            // Allow form submission with Enter key
+            document.getElementById('input-field').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    askDesignQuestion();
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
