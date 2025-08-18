@@ -16,7 +16,7 @@ This project implements a Design Agent using Flask and the smolagents library to
 
 1. Clone the repository.
 2. Install the required dependencies:
-  ```pip install flask smolagents markdown-it```
+  ```pip install flask smolagents markdown-it-py ddgs```
 5. Set up your Hugging Face API token as an environment variable:   
    ```set HF_TOKEN=your_hugging_face_token_here```
 
