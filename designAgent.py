@@ -1,6 +1,6 @@
 import os
 from flask import Flask, request, jsonify, render_template
-from smolagents import CodeAgent, HfApiModel, DuckDuckGoSearchTool
+from smolagents import CodeAgent, InferenceClientModel, DuckDuckGoSearchTool
 from markdown_it import MarkdownIt
 
 app = Flask(__name__)
@@ -14,7 +14,7 @@ if not HF_TOKEN:
     raise ValueError("HF_TOKEN environment variable is not set. Please set it before running the application.")
 
 # Define the Hugging Face model through smolagents
-model = HfApiModel(token=HF_TOKEN)
+model = InferenceClientModel(token=HF_TOKEN)
 
 # Initialize the CodeAgent with the model and tools
 agent = CodeAgent(
