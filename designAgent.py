@@ -2,6 +2,9 @@ import os
 from flask import Flask, request, jsonify, render_template
 from smolagents import CodeAgent, InferenceClientModel, DuckDuckGoSearchTool
 from markdown_it import MarkdownIt
+from werkzeug.utils import secure_filename
+import base64
+
 
 app = Flask(__name__)
 
@@ -23,9 +26,41 @@ agent = CodeAgent(
     max_steps=5
 )
 
+UPLOAD_FOLDER = "uploads"
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 @app.route('/')
 def home():
     return render_template('designAi.html')
+
+@app.route('/design-feedback', methods=['POST'])
+def design_feedback():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
+    file = request.files['file']
+
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(filepath)
+
+        # Convert image to base64 to pass into prompt
+        with open(filepath, "rb") as img_file:
+            img_b64 = base64.b64encode(img_file.read()).decode('utf-8')
+
+        prompt = f"""
+You are an AI Design Assistant. The user has uploaded an image (encoded in base64) 
+representing a design, sketch, or inspiration piece. Provide constructive design feedback, 
+noting strengths, potential improvements, and alignment with modern design trends."""
+
+        feedback = agent.run(prompt)
+        return jsonify({"feedback": md.render(feedback)})
+    else:
+        return jsonify({"error": "Invalid file format"}), 400
 
 @app.route('/design-assistant', methods=['POST'])
 def design_assistant():
